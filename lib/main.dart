@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'bean/User.dart';
+import 'bean/user.dart';
+import 'item.dart';
 
 void main() {
   runApp(MyApp());
@@ -66,12 +67,14 @@ class _MyHomePageState extends State<MyHomePage> {
                 onPressed: () async {
                   Navigator.of(context).pop(); //关闭对话框
 
-                  var user = User(controller1.text, controller2.text, controller3.text);
+                  var user = User(
+                      controller1.text, controller2.text, controller3.text);
 
                   setState(() {
                     _list.insert(0, user);
                   });
-                  SharedPreferences prefs = await SharedPreferences.getInstance();
+                  SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
                   var mapList = List<Map<String, dynamic>>();
                   _list.forEach((element) {
                     mapList.add(element.toJson());
@@ -111,36 +114,12 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           children: <Widget>[
             Expanded(
-                child: _list == null ? Text("暂无数据") : ListView.builder(
-                  itemBuilder: (BuildContext context, int index) {
-                    return Card(
-                      child: Padding(
-                        padding: EdgeInsets.all(15),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _list[index].name,
-                                  style: TextStyle(
-                                    color: Colors.blue,
-                                    fontSize: 18.0,
-                                  ),
-                                ),
-                                SizedBox(width: 20),
-                                Text(_list[index].phone.toString()),
-                              ],
-                            ),
-                            Text(_list[index].address)
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                  itemCount: _list.length,
-                ))
+                child: _list == null
+                    ? Text("暂无数据")
+                    : ListView.builder(
+                        itemBuilder: (context, index) => Item(_list[index]),
+                        itemCount: _list.length,
+                      ))
           ],
         ),
       ),
@@ -149,9 +128,6 @@ class _MyHomePageState extends State<MyHomePage> {
         tooltip: 'Increment',
         child: Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
-      /*bottomNavigationBar: MNavBar((i) {
-        setState(() {});
-      }),*/
     );
   }
 }
