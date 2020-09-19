@@ -1,6 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'bean/User.dart';
 
 void main() {
   runApp(MyApp());
@@ -15,7 +20,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'Address'),
     );
   }
 }
@@ -29,9 +34,10 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  var _list = [
-    {"name": "张三", "phone": 1388888888, "address": "湖北省武汉市XXX区XXX"},
-  ];
+  var controller1 = TextEditingController();
+  var controller2 = TextEditingController();
+  var controller3 = TextEditingController();
+  var _list = <User>[];
 
   _addAddress() {
     showDialog(
@@ -39,10 +45,16 @@ class _MyHomePageState extends State<MyHomePage> {
         builder: (c) {
           return AlertDialog(
             title: Text("请输入信息"),
-            content: Column(children: [
-              TextField(decoration: InputDecoration(hintText: "姓名")),
-              TextField(decoration: InputDecoration(hintText: "电话")),
-              TextField(decoration: InputDecoration(hintText: "地址")),
+            content: Column(mainAxisSize: MainAxisSize.min, children: [
+              TextField(
+                  controller: controller1,
+                  decoration: InputDecoration(hintText: "姓名")),
+              TextField(
+                  controller: controller2,
+                  decoration: InputDecoration(hintText: "电话")),
+              TextField(
+                  controller: controller3,
+                  decoration: InputDecoration(hintText: "地址")),
             ]),
             actions: <Widget>[
               FlatButton(
@@ -51,8 +63,20 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               FlatButton(
                 child: Text("确定"),
-                onPressed: () {
-                  Navigator.of(context).pop(true); //关闭对话框
+                onPressed: () async {
+                  Navigator.of(context).pop(); //关闭对话框
+
+                  var user = User(controller1.text, controller2.text, controller3.text);
+
+                  setState(() {
+                    _list.insert(0, user);
+                  });
+                  SharedPreferences prefs = await SharedPreferences.getInstance();
+                  var mapList = List<Map<String, dynamic>>();
+                  _list.forEach((element) {
+                    mapList.add(element.toJson());
+                  });
+                  await prefs.setString('list', jsonEncode(mapList));
                 },
               ),
             ],
@@ -61,15 +85,24 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    SharedPreferences.getInstance().then((value) {
+      setState(() {
+        if (value.getString("list") == null) {
+          return;
+        }
+        List<dynamic> mapList = jsonDecode(value.getString("list"));
+        mapList.forEach((element) {
+          _list.add(User.fromJson(element));
+        });
+      });
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     print("${_list.length}");
-    for (int i1 = 0; i1 < 50; i1++) {
-      _list.add({
-        "name": "张$i1三",
-        "phone": "13888888$i1",
-        "address": "湖北省武汉市XXX区XXX"
-      });
-    }
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -78,36 +111,36 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           children: <Widget>[
             Expanded(
-                child: ListView.builder(
-              itemBuilder: (BuildContext context, int index) {
-                return Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(15),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
+                child: _list == null ? Text("暂无数据") : ListView.builder(
+                  itemBuilder: (BuildContext context, int index) {
+                    return Card(
+                      child: Padding(
+                        padding: EdgeInsets.all(15),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              _list[index]["name"],
-                              style: TextStyle(
-                                color: Colors.blue,
-                                fontSize: 18.0,
-                              ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _list[index].name,
+                                  style: TextStyle(
+                                    color: Colors.blue,
+                                    fontSize: 18.0,
+                                  ),
+                                ),
+                                SizedBox(width: 20),
+                                Text(_list[index].phone.toString()),
+                              ],
                             ),
-                            SizedBox(width: 20),
-                            Text(_list[index]["phone"].toString()),
+                            Text(_list[index].address)
                           ],
                         ),
-                        Text(_list[index]["address"])
-                      ],
-                    ),
-                  ),
-                );
-              },
-              itemCount: _list.length,
-            ))
+                      ),
+                    );
+                  },
+                  itemCount: _list.length,
+                ))
           ],
         ),
       ),
