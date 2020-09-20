@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -40,7 +39,7 @@ class _MyHomePageState extends State<MyHomePage> {
   var controller3 = TextEditingController();
   var _list = <User>[];
 
-  _addAddress() {
+  _addEditAddressDialog() {
     showDialog(
         context: context,
         builder: (c) {
@@ -113,18 +112,36 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Center(
         child: Column(
           children: <Widget>[
+            Visibility(
+                visible: _list != null,
+                child: Padding(
+                  //上下左右各添加16像素补白
+                  padding: EdgeInsets.all(5),
+                  child: Text(
+                    "长按可编辑已存在的信息",
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 12.0,
+                    ),
+                  ),
+                )),
             Expanded(
                 child: _list == null
                     ? Text("暂无数据")
                     : ListView.builder(
-                        itemBuilder: (context, index) => Item(_list[index]),
+                        itemBuilder: (context, index) => Item(_list[index], () {
+                          controller1.text = _list[index].name;
+                          controller2.text = _list[index].phone;
+                          controller3.text = _list[index].address;
+                          _addEditAddressDialog();
+                        }),
                         itemCount: _list.length,
                       ))
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _addAddress,
+        onPressed: _addEditAddressDialog,
         tooltip: 'Increment',
         child: Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.

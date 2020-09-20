@@ -3,15 +3,22 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 import 'bean/user.dart';
+typedef void OnLongClick();
 
 class Item extends StatelessWidget {
   final User user;
+  final OnLongClick onLongClick;
 
-  Item(this.user);
+  Item(this.user, this.onLongClick);
+
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return GestureDetector(
+      onLongPress: (){
+
+        onLongClick.call();
+      },
       onTap: () {
         Clipboard.setData(ClipboardData(
             text: user.name + " " + user.phone + " " + user.address));

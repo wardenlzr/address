@@ -8,7 +8,7 @@
     <application
         android:name="io.flutter.app.FlutterApplication"
         android:label="address"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/address_book2">
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
