@@ -46,17 +46,54 @@ class _MyHomePageState extends State<MyHomePage> {
           return AlertDialog(
             title: Text("请输入信息"),
             content: Column(mainAxisSize: MainAxisSize.min, children: [
-              TextField(
-                  controller: controller1,
-                  decoration: InputDecoration(hintText: "姓名")),
-              TextField(
-                  controller: controller2,
-                  decoration: InputDecoration(hintText: "电话")),
-              TextField(
-                  controller: controller3,
-                  decoration: InputDecoration(hintText: "地址")),
+              TextFormField(
+                controller: controller1,
+                decoration: InputDecoration(
+                  hintText: '请输入姓名',
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.close),
+                    onPressed: () {
+                      setState(() {
+                        debugPrint('suffixIcon.onPressed');
+                        controller1.text = "";
+                      });
+                    },
+                  ),
+                ),
+                onChanged: (str) {
+                  debugPrint(str.length.toString());
+                },
+              ),
+              TextFormField(
+                controller: controller2,
+                decoration: InputDecoration(
+                  hintText: '请输入电话',
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.close),
+                    onPressed: () {
+                      setState(() {
+                        controller2.text = "";
+                      });
+                    },
+                  ),
+                ),
+              ),
+              TextFormField(
+                controller: controller3,
+                decoration: InputDecoration(
+                  hintText: '请输入地址',
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.close),
+                    onPressed: () {
+                      setState(() {
+                        controller3.text = "";
+                      });
+                    },
+                  ),
+                ),
+              ),
             ]),
-            actions: <Widget>[
+            actions: [
               FlatButton(
                 child: Text("取消"),
                 onPressed: () => Navigator.of(context).pop(), //关闭对话框
@@ -65,7 +102,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: Text("确定"),
                 onPressed: () async {
                   Navigator.of(context).pop(); //关闭对话框
-
                   var user = User(
                       controller1.text, controller2.text, controller3.text);
 
@@ -129,19 +165,52 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: _list == null
                     ? Text("暂无数据")
                     : ListView.builder(
-                        itemBuilder: (context, index) => Item(_list[index], () {
-                          controller1.text = _list[index].name;
-                          controller2.text = _list[index].phone;
-                          controller3.text = _list[index].address;
-                          _addEditAddressDialog();
-                        }),
+                        itemBuilder: (context, index) => Item(
+                          _list[index],
+                          () {
+                            controller1.text = _list[index].name;
+                            controller2.text = _list[index].phone;
+                            controller3.text = _list[index].address;
+                            _addEditAddressDialog();
+                          },
+                          () {
+                            showDialog(
+                                context: context,
+                                builder: (c) {
+                                  return AlertDialog(
+                                    title: Text("确认删除第${index + 1}条？"),
+                                    actions: [
+                                      FlatButton(
+                                        child: Text("取消"),
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(), //关闭对话框
+                                      ),
+                                      FlatButton(
+                                        child: Text("确定"),
+                                        onPressed: () {
+                                          setState(() {
+                                            _list.removeAt(index);
+                                          });
+                                          Navigator.of(context).pop(); //关闭对话框
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                });
+                          },
+                        ),
                         itemCount: _list.length,
                       ))
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _addEditAddressDialog,
+        onPressed: () {
+          controller1.text = "";
+          controller2.text = "";
+          controller3.text = "";
+          _addEditAddressDialog();
+        },
         tooltip: 'Increment',
         child: Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
