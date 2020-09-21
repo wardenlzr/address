@@ -38,18 +38,29 @@ class Item extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Text(
-                        user.name,
-                        style: TextStyle(
-                          color: Colors.blue,
-                          fontSize: 18.0,
+                  Flex(
+                    direction: Axis.horizontal,
+                    children: <Widget>[
+                      Expanded(
+                        flex: 1,
+                        child: Text(
+                          user.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontSize: 18.0,
+                          ),
                         ),
                       ),
-                      SizedBox(width: 20),
-                      Text(user.phone.toString()),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          user.phone.toString(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ],
                   ),
                   Text(user.address)
@@ -61,8 +72,13 @@ class Item extends StatelessWidget {
                 onDelClick.call();
               },
               child: Padding(
-                padding: EdgeInsets.all(15),
-                child: Image(image: AssetImage("images/del.png"), width: 30.0),
+                padding: EdgeInsets.all(10),
+                child: Icon(
+                  Icons.delete_outline,
+                  color: Colors.red,
+                  size: 23,
+                ),
+//                child: Image(image: AssetImage("images/del.png"), width: 30.0),
               ),
             ),
           ]),

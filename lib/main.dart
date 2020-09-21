@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'bean/user.dart';
@@ -39,7 +40,16 @@ class _MyHomePageState extends State<MyHomePage> {
   var controller3 = TextEditingController();
   var _list = <User>[];
 
-  _addEditAddressDialog() {
+  _addEditAddressDialog(isAdd, {index = 0}) {
+    if (isAdd) {
+      controller1.text = "";
+      controller2.text = "";
+      controller3.text = "";
+    } else {
+      controller1.text = _list[index].name;
+      controller2.text = _list[index].phone;
+      controller3.text = _list[index].address;
+    }
     showDialog(
         context: context,
         builder: (c) {
@@ -48,6 +58,7 @@ class _MyHomePageState extends State<MyHomePage> {
             content: Column(mainAxisSize: MainAxisSize.min, children: [
               TextFormField(
                 controller: controller1,
+                maxLength: 5,
                 decoration: InputDecoration(
                   hintText: '请输入姓名',
                   suffixIcon: IconButton(
@@ -66,6 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               TextFormField(
                 controller: controller2,
+                maxLength: 11,
                 decoration: InputDecoration(
                   hintText: '请输入电话',
                   suffixIcon: IconButton(
@@ -100,26 +112,37 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               FlatButton(
                 child: Text("确定"),
-                onPressed: () async {
+                onPressed: () {
+                  if (controller1.text == null ||
+                      controller1.text.length == 0) {
+                    toast("请输入姓名");
+                    return;
+                  }
                   Navigator.of(context).pop(); //关闭对话框
                   var user = User(
                       controller1.text, controller2.text, controller3.text);
-
                   setState(() {
-                    _list.insert(0, user);
+                    if (isAdd) {
+                      _list.insert(0, user);
+                    } else {
+                      _list[index] = user;
+                    }
                   });
-                  SharedPreferences prefs =
-                      await SharedPreferences.getInstance();
-                  var mapList = List<Map<String, dynamic>>();
-                  _list.forEach((element) {
-                    mapList.add(element.toJson());
-                  });
-                  await prefs.setString('list', jsonEncode(mapList));
+                  save2Local();
                 },
               ),
             ],
           );
         });
+  }
+
+  Future<void> save2Local() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var mapList = List<Map<String, dynamic>>();
+    _list.forEach((element) {
+      mapList.add(element.toJson());
+    });
+    await prefs.setString('list', jsonEncode(mapList));
   }
 
   @override
@@ -149,7 +172,7 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           children: <Widget>[
             Visibility(
-                visible: _list != null,
+                visible: _list != null && _list.length > 0,
                 child: Padding(
                   //上下左右各添加16像素补白
                   padding: EdgeInsets.all(5),
@@ -162,16 +185,19 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 )),
             Expanded(
-                child: _list == null
-                    ? Text("暂无数据")
+                child: _list == null || _list.length == 0
+                    ? Text(
+                        "暂无数据, 快点右下方的按钮添加吧!",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          height: 8,
+                        ),
+                      )
                     : ListView.builder(
                         itemBuilder: (context, index) => Item(
                           _list[index],
                           () {
-                            controller1.text = _list[index].name;
-                            controller2.text = _list[index].phone;
-                            controller3.text = _list[index].address;
-                            _addEditAddressDialog();
+                            _addEditAddressDialog(false, index: index);
                           },
                           () {
                             showDialog(
@@ -192,6 +218,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                             _list.removeAt(index);
                                           });
                                           Navigator.of(context).pop(); //关闭对话框
+                                          save2Local();
                                         },
                                       ),
                                     ],
@@ -206,14 +233,18 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          controller1.text = "";
-          controller2.text = "";
-          controller3.text = "";
-          _addEditAddressDialog();
+          _addEditAddressDialog(true);
         },
         tooltip: 'Increment',
         child: Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+
+  void toast(msg) {
+    Fluttertoast.showToast(
+      msg: msg,
+      toastLength: Toast.LENGTH_SHORT,
     );
   }
 }
